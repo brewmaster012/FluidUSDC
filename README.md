@@ -49,8 +49,8 @@ On ZetaChain EVM a `CurveStableSwapNG` pool was created with the following 4 ZRC
 coins:
 | Name | Contract Type | Address |
 |--------|------|---------|
-| AMM Implementation |  | `0x1eD4644Bd2D0e1BBd89d100ba96B1dA48Bf1048f` |
-| Factory |  | `0x4dA267b2F80c74D0FdBcF06f4F65730bB003223E` |
+| AMM Implementation |CurveStableSwapNG  | `0x1eD4644Bd2D0e1BBd89d100ba96B1dA48Bf1048f` |
+| Factory | CurveStableSwapFactoryNG | `0x4dA267b2F80c74D0FdBcF06f4F65730bB003223E` |
 | Pool/USDC.4 |  ERC20 | `0xCA4b0396064F40640F1d9014257a99aB3336C724` |
 | USDC.ARB | ZRC20 | `0x0327f0660525b15Cdb8f1f5FBF0dD7Cd5Ba182aD` |
 | USDC.SOL | ZRC20 |`0x8344d6f84d26f998fa070BbEa6D2E15E359e2641` |
@@ -120,5 +120,7 @@ which will be called with CALLDATA `payload` bytes.
 ## USDC on X => USDC.4 on ZetaChain
 
 
-
 ## USDC.4 on ZetaChain => USDC on chain X
+
+
+## USDC on X => USDC on Y
