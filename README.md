@@ -47,15 +47,15 @@ the withdraw() function of the USDC.X ZRC20 contract.
 ## How does `CurveStableSwapNG` work
 On ZetaChain EVM a `CurveStableSwapNG` pool was created with the following 4 ZRC20
 coins:
-| Contract Type | Address |
-|--------------|---------|
-| AMM Implementation | `0x1eD4644Bd2D0e1BBd89d100ba96B1dA48Bf1048f` |
-| Factory | `0x4dA267b2F80c74D0FdBcF06f4F65730bB003223E` |
-| USDC (Arbitrum) | `0x0327f0660525b15Cdb8f1f5FBF0dD7Cd5Ba182aD` |
-| USDC (Solana) | `0x8344d6f84d26f998fa070BbEa6D2E15E359e2641` |
-| USDC (Base) | `0x96152E6180E085FA57c7708e18AF8F05e37B479D` |
-| USDC (Avalanche) | `0xa52Ad01A1d62b408fFe06C2467439251da61E4a9` |
-| Pool | `0xCA4b0396064F40640F1d9014257a99aB3336C724` |
+| Name | Contract Type | Address |
+|--------|------|---------|
+| AMM Implementation |  | `0x1eD4644Bd2D0e1BBd89d100ba96B1dA48Bf1048f` |
+| Factory |  | `0x4dA267b2F80c74D0FdBcF06f4F65730bB003223E` |
+| Pool/USDC.4 |  ERC20 | `0xCA4b0396064F40640F1d9014257a99aB3336C724` |
+| USDC.ARB | ZRC20 | `0x0327f0660525b15Cdb8f1f5FBF0dD7Cd5Ba182aD` |
+| USDC.SOL | ZRC20 |`0x8344d6f84d26f998fa070BbEa6D2E15E359e2641` |
+| USDC.BASE | ZRC20 |`0x96152E6180E085FA57c7708e18AF8F05e37B479D` |
+| USDC.AVAX | ZRC20 |`0xa52Ad01A1d62b408fFe06C2467439251da61E4a9` |
 
 ## How does ZRC20 withdraw work?
 ZRC20 contract has a funciton function
@@ -75,7 +75,7 @@ on an external chain.
 On a supported foreign chain call the Gateway contract
 function (say [Arbitrum Gateway](https://arbiscan.io/address/0x1C53e188Bc2E471f9D4A4762CFf843d32C2C8549#writeProxyContract) the following functions:
 
-```
+```solidity
 // deposit ETH into ZetaChain
 function deposit(
         address receiver,
@@ -95,7 +95,7 @@ The transaciton will be observeed by ZetaChain observers and corresponding
 ZRC20 will be minted to the `receiver` on ZetaChain.
 
 There is a variant of `deposit()` function that allows the deposit into ZRC20
-balance, and immediately call a user specified function on zEVM in the same
+balance, and immediately call a user specified contract on zEVM in the same
 transction:
 
 ```solidity
@@ -118,6 +118,7 @@ into ZRC20 happened. The `receiver` should be a contract on ZetaChain EVM
 which will be called with CALLDATA `payload` bytes.
 
 ## USDC on X => USDC.4 on ZetaChain
+
 
 
 ## USDC.4 on ZetaChain => USDC on chain X
