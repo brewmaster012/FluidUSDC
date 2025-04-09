@@ -45,8 +45,7 @@ User can redeem the USDC.4 to any USDC.X, and can optionally withdraw them to ch
 the withdraw() function of the USDC.X ZRC20 contract.
 
 
-<details>
-<summary>How does ZRC20 withdraw work? </summary>
+## How does ZRC20 withdraw work?
 ZRC20 contract has a funciton function
 ```solidity
 withdraw(
@@ -57,10 +56,10 @@ withdraw(
 which will burn the `amount` of the caller balance in this ZRC20 contract,
 and release the fungible token this ZRC20 represents to the `to` address
 on an external chain.
-</details>
 
-<details>
-<summary>How does deposit a foreign fungible token into ZetaChain work? </summary>
+
+
+## How does deposit a foreign fungible token into ZetaChain work?
 On a supported foreign chain call the Gateway contract
 function (say [Arbitrum Gateway](https://arbiscan.io/address/0x1C53e188Bc2E471f9D4A4762CFf843d32C2C8549#writeProxyContract) the following functions:
 
@@ -78,5 +77,3 @@ function deposit(
       RevertOptions calldata revertOptions
   ) external whenNotPaused {
 ```
-
-</details>
