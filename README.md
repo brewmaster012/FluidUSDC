@@ -44,6 +44,18 @@ and get USDC.4 as Liquidity provider token (represents shares of the pool) USDC.
 User can redeem the USDC.4 to any USDC.X, and can optionally withdraw them to chain X using
 the withdraw() function of the USDC.X ZRC20 contract.
 
+## How does `CurveStableSwapNG` work
+On ZetaChain EVM a `CurveStableSwapNG` pool was created with the following 4 ZRC20
+coins:
+| Contract Type | Address |
+|--------------|---------|
+| AMM Implementation | `0x1eD4644Bd2D0e1BBd89d100ba96B1dA48Bf1048f` |
+| Factory | `0x4dA267b2F80c74D0FdBcF06f4F65730bB003223E` |
+| USDC (Arbitrum) | `0x0327f0660525b15Cdb8f1f5FBF0dD7Cd5Ba182aD` |
+| USDC (Solana) | `0x8344d6f84d26f998fa070BbEa6D2E15E359e2641` |
+| USDC (Base) | `0x96152E6180E085FA57c7708e18AF8F05e37B479D` |
+| USDC (Avalanche) | `0xa52Ad01A1d62b408fFe06C2467439251da61E4a9` |
+| Pool | `0xCA4b0396064F40640F1d9014257a99aB3336C724` |
 
 ## How does ZRC20 withdraw work?
 ZRC20 contract has a funciton function
@@ -69,6 +81,7 @@ function deposit(
         address receiver,
         RevertOptions calldata revertOptions
     ) external payable whenNotPaused {}
+
 // deposit ERC20 asset into ZetaChain
 function deposit(
       address receiver,
@@ -77,3 +90,34 @@ function deposit(
       RevertOptions calldata revertOptions
   ) external whenNotPaused {
 ```
+
+The transaciton will be observeed by ZetaChain observers and corresponding
+ZRC20 will be minted to the `receiver` on ZetaChain.
+
+There is a variant of `deposit()` function that allows the deposit into ZRC20
+balance, and immediately call a user specified function on zEVM in the same
+transction:
+
+```solidity
+function depositAndCall(
+    address receiver,
+    bytes calldata payload,
+    RevertOptions calldata revertOptions
+) external payable whenNotPaused {}
+
+function depositAndCall(
+    address receiver,
+    uint256 amount,
+    address asset,
+    bytes calldata payload,
+    RevertOptions calldata revertOptions
+) external whenNotPaused {}
+```
+The additional parameter `payload` bytes is the contract call after Deposit
+into ZRC20 happened. The `receiver` should be a contract on ZetaChain EVM
+which will be called with CALLDATA `payload` bytes.
+
+## USDC on X => USDC.4 on ZetaChain
+
+
+## USDC.4 on ZetaChain => USDC on chain X
