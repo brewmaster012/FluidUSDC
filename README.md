@@ -57,6 +57,36 @@ coins:
 | USDC.BASE | ZRC20 |`0x96152E6180E085FA57c7708e18AF8F05e37B479D` |
 | USDC.AVAX | ZRC20 |`0xa52Ad01A1d62b408fFe06C2467439251da61E4a9` |
 
+The `CurveStableSwapNG` contract is both a curve pool and also a
+ERC20 token, (USDC.4, the liquidity provider token).
+
+### USDC.X ZRC20 -> USDC.4
+Since USDC.4 is just the LP token of the `CurveStableSwapNG` pool,
+to convert a USDC.X to USDC.4, one simply call one of the `add_liquidity`
+functions in the ``CurveStableSwapNG` pool:
+
+```vyper
+def add_liquidity(
+    _amounts: DynArray[uint256, MAX_COINS],
+    _min_mint_amount: uint256,
+    _receiver: address = msg.sender
+) -> uint256:
+
+```
+
+### USDC.4 -> USDC.X
+To do the inverse, i.e. converting the unified USDC.4 balance into
+USDC.X, one just burns the USDC.4 balance by removing liquidity from the
+`CurveStableSwapNG` pool:
+```vyper
+def remove_liquidity_one_coin(
+    _burn_amount: uint256,
+    i: int128,
+    _min_received: uint256,
+    _receiver: address = msg.sender,
+) -> uint256:
+```
+
 ## How does ZRC20 withdraw work?
 ZRC20 contract has a funciton function
 ```solidity
