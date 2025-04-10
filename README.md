@@ -49,13 +49,15 @@ On ZetaChain EVM a `CurveStableSwapNG` pool was created with the following 4 ZRC
 coins:
 | Name | Contract Type | Address |
 |--------|------|---------|
-| AMM Implementation |CurveStableSwapNG  | `0x1eD4644Bd2D0e1BBd89d100ba96B1dA48Bf1048f` |
+| AMM Implementation |CurveStableSwapNG impl  | `0x1eD4644Bd2D0e1BBd89d100ba96B1dA48Bf1048f` |
 | Factory | CurveStableSwapFactoryNG | `0x4dA267b2F80c74D0FdBcF06f4F65730bB003223E` |
-| Pool/USDC.4 |  ERC20 | `0xCA4b0396064F40640F1d9014257a99aB3336C724` |
+| Pool/USDC.4 |  ERC20/CurveStableSwapNG | `0xCA4b0396064F40640F1d9014257a99aB3336C724` |
 | USDC.ARB | ZRC20 | `0x0327f0660525b15Cdb8f1f5FBF0dD7Cd5Ba182aD` |
 | USDC.SOL | ZRC20 |`0x8344d6f84d26f998fa070BbEa6D2E15E359e2641` |
 | USDC.BASE | ZRC20 |`0x96152E6180E085FA57c7708e18AF8F05e37B479D` |
 | USDC.AVAX | ZRC20 |`0xa52Ad01A1d62b408fFe06C2467439251da61E4a9` |
+
+You can inspect and interact with these contracts on zetachain blockscout explorer: https://zetachain.blockscout.com
 
 The `CurveStableSwapNG` contract is both a curve pool and also a
 ERC20 token, (USDC.4, the liquidity provider token).
