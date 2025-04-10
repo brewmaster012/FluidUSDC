@@ -1,5 +1,5 @@
 import React from "react";
-import { useWallet } from "../hooks/useWallet";
+import { useWallet } from "../context/WalletContext";
 import { CHAIN_IDS } from "../constants/addresses";
 
 const chainNames = {
