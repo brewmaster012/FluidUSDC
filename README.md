@@ -76,9 +76,9 @@ def add_liquidity(
 
 ```
 
-### USDC.4 -> USDC.X
+### USDC.4 -> USDC.Y
 To do the inverse, i.e. converting the unified USDC.4 balance into
-USDC.X, one just burns the USDC.4 balance by removing liquidity from the
+USDC.Y (the Y need not be the same X that got added into liquidity pool to get the USDC.4), one just burns the USDC.4 balance by removing liquidity from the
 `CurveStableSwapNG` pool:
 ```vyper
 def remove_liquidity_one_coin(
@@ -100,6 +100,11 @@ USDC.4 -> (remove_liquidity) -> USDC.X -> (ZRC20 withdraw) -> USDC on chain X
 One deposit USDC on chain X with depositAndCall (details to be explained in following sections )
 
 USDC on chain X -> (call depositAndCall on chain X Gateway contract) -> (ZRC20 USDC.X, and add it as liquidity to the `CurveStableSwapNG` pool) -> USDC.4 on ZetaChain
+
+## USDC on chain X => USDC on chain Y
+Compose the above two:
+
+USDC on chain X => USDC.4 on ZetaChain => USDC on chain Y
 
 ## (Detail) How does ZRC20 withdraw work?
 ZRC20 contract has a funciton function
