@@ -89,7 +89,19 @@ def remove_liquidity_one_coin(
 ) -> uint256:
 ```
 
-## How does ZRC20 withdraw work?
+## USDC.4 on ZetaChain => USDC on chain X
+
+One combines the USDC.4->USDC.X with the `withdraw()` (explained in following sections)  of USDC.X in a contract.
+
+USDC.4 -> (remove_liquidity) -> USDC.X -> (ZRC20 withdraw) -> USDC on chain X
+
+## USDC on chain X => USDC.4 on ZetaChain
+
+One deposit USDC on chain X with depositAndCall (details to be explained in following sections )
+
+USDC on chain X -> (call depositAndCall on chain X Gateway contract) -> (ZRC20 USDC.X, and add it as liquidity to the `CurveStableSwapNG` pool) -> USDC.4 on ZetaChain
+
+## (Detail) How does ZRC20 withdraw work?
 ZRC20 contract has a funciton function
 ```solidity
 withdraw(
@@ -103,7 +115,7 @@ on an external chain.
 
 
 
-## How does deposit a foreign fungible token into ZetaChain work?
+## (Detail) How does deposit a foreign fungible token into ZetaChain work?
 On a supported foreign chain call the Gateway contract
 function (say [Arbitrum Gateway](https://arbiscan.io/address/0x1C53e188Bc2E471f9D4A4762CFf843d32C2C8549#writeProxyContract) the following functions:
 
@@ -148,11 +160,3 @@ function depositAndCall(
 The additional parameter `payload` bytes is the contract call after Deposit
 into ZRC20 happened. The `receiver` should be a contract on ZetaChain EVM
 which will be called with CALLDATA `payload` bytes.
-
-## USDC on X => USDC.4 on ZetaChain
-
-
-## USDC.4 on ZetaChain => USDC on chain X
-
-
-## USDC on X => USDC on Y
