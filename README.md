@@ -1,7 +1,7 @@
 ```
 > USE THIS AT YOUR OWN RISK!!
 ```
-[The App](./dist/index.html)
+[The App](https://brewmaster012.github.io/FluidUSDC)
 
 # FluidUSDC
 
