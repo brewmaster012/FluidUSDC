@@ -1,12 +1,14 @@
-// Update ZRC20Balances.jsx
+// src/components/ZRC20Balances.jsx
 import React, { useState, useEffect } from "react";
 import { useWallet } from "../context/WalletContext";
 import { useZRC20Balances } from "../hooks/useZRC20Balances";
 import { CHAIN_IDS } from "../constants/addresses";
 import NetworkIcon from "./NetworkIcon";
 import ConversionModal from "./ConversionModal";
+import WithdrawModal from "./WithdrawModal"; // Import the new WithdrawModal
 
 const ZRC20Balances = () => {
+  // Existing state
   const { account, provider, chainId, switchToChain } = useWallet();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { balances, loading, error } = useZRC20Balances(
@@ -18,6 +20,12 @@ const ZRC20Balances = () => {
     isOpen: false,
     token: null,
     mode: null,
+  });
+
+  // New state for withdraw modal
+  const [withdrawModalState, setWithdrawModalState] = useState({
+    isOpen: false,
+    token: null,
   });
 
   // Auto-refresh every 30 seconds
@@ -50,11 +58,27 @@ const ZRC20Balances = () => {
     });
   };
 
+  // New handler for opening withdraw modal
+  const openWithdrawModal = (token) => {
+    setWithdrawModalState({
+      isOpen: true,
+      token,
+    });
+  };
+
   const closeModal = () => {
     setModalState({
       isOpen: false,
       token: null,
       mode: null,
+    });
+  };
+
+  // New handler for closing withdraw modal
+  const closeWithdrawModal = () => {
+    setWithdrawModalState({
+      isOpen: false,
+      token: null,
     });
   };
 
@@ -201,12 +225,20 @@ const ZRC20Balances = () => {
                       )}
                     {token.formattedBalance > 0 &&
                       token.symbol === "USDC.4" && (
-                        <button
-                          onClick={() => openRedeemModal(token)}
-                          className="text-indigo-600 hover:text-indigo-900 mr-3"
-                        >
-                          Redeem
-                        </button>
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() => openRedeemModal(token)}
+                            className="text-indigo-600 hover:text-indigo-900"
+                          >
+                            Redeem
+                          </button>
+                          <button
+                            onClick={() => openWithdrawModal(token)}
+                            className="text-green-600 hover:text-green-900"
+                          >
+                            Withdraw
+                          </button>
+                        </div>
                       )}
                   </td>
                 </tr>
@@ -240,6 +272,14 @@ const ZRC20Balances = () => {
         onClose={closeModal}
         token={modalState.token}
         mode={modalState.mode}
+        onSuccess={handleConversionSuccess}
+      />
+
+      {/* Withdraw Modal */}
+      <WithdrawModal
+        isOpen={withdrawModalState.isOpen}
+        onClose={closeWithdrawModal}
+        token={withdrawModalState.token}
         onSuccess={handleConversionSuccess}
       />
     </div>

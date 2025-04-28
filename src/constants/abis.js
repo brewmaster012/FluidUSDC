@@ -13,6 +13,7 @@ export const ZRC20_ABI = [
   "function transfer(address, uint256) returns (bool)",
   "function withdraw(bytes memory to, uint256 amount) returns (bool)",
   "function decimals() view returns (uint8)",
+  "function allowance(address owner, address spender) view returns (uint256)",
 ];
 
 export const ERC20_ABI = [
@@ -25,4 +26,9 @@ export const ERC20_ABI = [
 export const GATEWAY_ABI = [
   "function deposit(address receiver, uint256 amount, address asset, tuple(bool callOnRevert, bytes revertMessage) revertOptions) external",
   "function depositAndCall(address receiver, uint256 amount, address asset, bytes calldata payload, tuple(bool callOnRevert, bytes revertMessage) revertOptions) external",
+];
+
+export const WITHDRAWER_ABI = [
+  "function withdrawToChain(uint256 targetChainId, bytes memory recipient, uint256 amount, uint256 minAmountOut, uint256 maxSwapAmount) external",
+  "function getUSDCForChain(uint256 chainId) public view returns (address)",
 ];
