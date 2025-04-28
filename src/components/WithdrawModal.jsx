@@ -28,6 +28,7 @@ const NETWORK_EXPLORERS = {
   [CHAIN_IDS.ARBITRUM]: "https://arbiscan.io/tx/",
   [CHAIN_IDS.BASE]: "https://basescan.org/tx/",
   [CHAIN_IDS.AVAX]: "https://snowtrace.io/tx/",
+  [CHAIN_IDS.SOLANA]: "https://solscan.io/tx/",
   zeta: "https://zetachain.blockscout.com/tx/",
 };
 
@@ -38,11 +39,11 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
   const [error, setError] = useState(null);
   const [targetChain, setTargetChain] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
-  const [slippage, setSlippage] = useState(5.0); // Increased default slippage to 5%
-  const [gasSwapRatio, setGasSwapRatio] = useState(10); // Increased default gas ratio to 10%
+  const [slippage, setSlippage] = useState(5.0);
+  const [gasSwapRatio, setGasSwapRatio] = useState(10);
 
   // New state variables for transaction tracking
-  const [txStatus, setTxStatus] = useState(null); // null, 'pending', 'confirming', 'processing', 'outboundMined', 'failed'
+  const [txStatus, setTxStatus] = useState(null);
   const [zetaTxHash, setZetaTxHash] = useState(null);
   const [externalTxHash, setExternalTxHash] = useState(null);
   const [statusCheckInterval, setStatusCheckInterval] = useState(null);
@@ -80,12 +81,41 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
   };
 
   const validateAddress = (address) => {
+    // Check if we're validating for Solana
+    if (targetChain && parseInt(targetChain) === CHAIN_IDS.SOLANA) {
+      // Basic validation for Solana addresses - typically they are 32-44 characters long
+      // and use base58 encoding (typically consisting of alphanumeric characters excluding 0, I, O, and l)
+      return (
+        address.length >= 32 &&
+        address.length <= 44 &&
+        /^[1-9A-HJ-NP-Za-km-z]+$/.test(address)
+      );
+    }
+
+    // For EVM chains, use ethers validation
     try {
       ethers.utils.getAddress(address); // Will throw if not valid
       return true;
     } catch (error) {
       return false;
     }
+  };
+
+  // Function to encode the recipient address based on chain type
+  const encodeRecipientAddress = (address, chainId) => {
+    // For Solana, we need to encode the pubkey as bytes
+    if (parseInt(chainId) === CHAIN_IDS.SOLANA) {
+      // For Solana, we assume the address is already in the correct format as a string
+      // The ZetaChain backend will handle the conversion to Solana's pubkey format
+      // return ethers.utils.defaultAbiCoder.encode(["string"], [address]);
+      const bytes = ethers.utils.toUtf8Bytes(address);
+      const hex = ethers.utils.hexlify(bytes);
+      console.log("solana address in hex", hex);
+      return bytes;
+    }
+
+    // For EVM chains, we encode as address
+    return ethers.utils.defaultAbiCoder.encode(["address"], [address]);
   };
 
   // New function to check transaction status
@@ -157,7 +187,7 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
       return;
 
     if (!validateAddress(recipientAddress)) {
-      setError("Invalid recipient address");
+      setError("Invalid recipient address for the selected chain");
       return;
     }
 
@@ -171,19 +201,16 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
         token.decimals,
       );
 
-      // Calculate a more conservative minAmountOut with higher slippage
-      const minAmountOut = parsedAmount
-        .mul(0)
-        // .mul(100 - Math.floor(slippage * 100))
-        .div(100);
+      // Calculate minAmountOut with slippage
+      const minAmountOut = parsedAmount.mul(0).div(100);
 
-      // Calculate a more generous maxSwapAmount for gas
+      // Calculate maxSwapAmount for gas
       const maxSwapAmount = parsedAmount;
 
-      // Encode recipient address as bytes
-      const encodedRecipient = ethers.utils.defaultAbiCoder.encode(
-        ["address"],
-        [recipientAddress],
+      // Encode recipient address as bytes based on chain type
+      const encodedRecipient = encodeRecipientAddress(
+        recipientAddress,
+        targetChain,
       );
 
       // First approve the withdrawer contract to spend tokens
@@ -342,6 +369,27 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
     );
   };
 
+  // Help text for address format
+  const getAddressHelpText = () => {
+    if (!targetChain) return null;
+
+    const chainId = parseInt(targetChain);
+    if (chainId === CHAIN_IDS.SOLANA) {
+      return (
+        <p className="text-xs text-gray-500 mt-1">
+          Enter a valid Solana address (e.g.,
+          "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr")
+        </p>
+      );
+    }
+
+    return (
+      <p className="text-xs text-gray-500 mt-1">
+        Enter a valid EVM address (e.g., "0x123...")
+      </p>
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -402,7 +450,11 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
                   </label>
                   <select
                     value={targetChain}
-                    onChange={(e) => setTargetChain(e.target.value)}
+                    onChange={(e) => {
+                      setTargetChain(e.target.value);
+                      // Reset recipient address when changing chains to prevent validation errors
+                      setRecipientAddress("");
+                    }}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     disabled={loading}
                   >
@@ -410,6 +462,7 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
                     <option value={CHAIN_IDS.ARBITRUM}>Arbitrum</option>
                     <option value={CHAIN_IDS.BASE}>Base</option>
                     <option value={CHAIN_IDS.AVAX}>Avalanche</option>
+                    <option value={CHAIN_IDS.SOLANA}>Solana</option>
                   </select>
                 </div>
 
@@ -421,10 +474,15 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
                     type="text"
                     value={recipientAddress}
                     onChange={(e) => setRecipientAddress(e.target.value)}
-                    placeholder="0x..."
+                    placeholder={
+                      parseInt(targetChain) === CHAIN_IDS.SOLANA
+                        ? "Solana address..."
+                        : "0x..."
+                    }
                     disabled={loading}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   />
+                  {getAddressHelpText()}
                 </div>
 
                 {/* <div className="mt-4">

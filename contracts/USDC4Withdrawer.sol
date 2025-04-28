@@ -88,6 +88,7 @@ contract USDC4Withdrawer {
         chainToUSDC[42161] = USDC_ARB; // Arbitrum
         chainToUSDC[8453] = USDC_BASE; // Base
         chainToUSDC[43114] = USDC_AVAX; // Avalanche
+        chainToUSDC[900] = USDC_SOL;
     }
 
     /**
