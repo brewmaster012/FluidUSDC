@@ -427,7 +427,7 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
                   />
                 </div>
 
-                <div className="mt-4">
+                {/* <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Slippage Tolerance (higher = more likely to succeed)
                   </label>
@@ -443,9 +443,9 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
                     <option value="10.0">10.0%</option>
                     <option value="15.0">15.0%</option>
                   </select>
-                </div>
+                </div> */}
 
-                <div className="mt-4">
+                {/* <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Gas Fee Allocation (higher = more likely to succeed)
                   </label>
@@ -462,7 +462,7 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
                     <option value="15">15%</option>
                     <option value="20">20%</option>
                   </select>
-                </div>
+                </div> */}
 
                 {error && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
