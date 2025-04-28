@@ -1,8 +1,10 @@
+// Update ZRC20Balances.jsx
 import React, { useState, useEffect } from "react";
 import { useWallet } from "../context/WalletContext";
 import { useZRC20Balances } from "../hooks/useZRC20Balances";
 import { CHAIN_IDS } from "../constants/addresses";
 import NetworkIcon from "./NetworkIcon";
+import ConversionModal from "./ConversionModal";
 
 const ZRC20Balances = () => {
   const { account, provider, chainId, switchToChain } = useWallet();
@@ -12,6 +14,11 @@ const ZRC20Balances = () => {
     provider,
     refreshTrigger,
   );
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    token: null,
+    mode: null,
+  });
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
@@ -27,14 +34,34 @@ const ZRC20Balances = () => {
     setRefreshTrigger((prev) => prev + 1);
   };
 
-  // if (!account) {
-  //   return (
-  //     <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-  //       <h2 className="text-xl font-bold mb-4">Your ZRC20 Balances</h2>
-  //       <p className="text-gray-500">Connect your wallet to view balances</p>
-  //     </div>
-  //   );
-  // }
+  const openConvertModal = (token) => {
+    setModalState({
+      isOpen: true,
+      token,
+      mode: "convert",
+    });
+  };
+
+  const openRedeemModal = (token) => {
+    setModalState({
+      isOpen: true,
+      token,
+      mode: "redeem",
+    });
+  };
+
+  const closeModal = () => {
+    setModalState({
+      isOpen: false,
+      token: null,
+      mode: null,
+    });
+  };
+
+  const handleConversionSuccess = () => {
+    // Refresh balances after a successful conversion
+    handleRefresh();
+  };
 
   const isZetaChain = chainId === CHAIN_IDS.ZETA;
 
@@ -165,21 +192,21 @@ const ZRC20Balances = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     {token.formattedBalance > 0 &&
                       token.symbol !== "USDC.4" && (
-                        <a
-                          href="#"
+                        <button
+                          onClick={() => openConvertModal(token)}
                           className="text-indigo-600 hover:text-indigo-900 mr-3"
                         >
                           Convert to USDC.4
-                        </a>
+                        </button>
                       )}
                     {token.formattedBalance > 0 &&
                       token.symbol === "USDC.4" && (
-                        <a
-                          href="#"
+                        <button
+                          onClick={() => openRedeemModal(token)}
                           className="text-indigo-600 hover:text-indigo-900 mr-3"
                         >
                           Redeem
-                        </a>
+                        </button>
                       )}
                   </td>
                 </tr>
@@ -206,6 +233,15 @@ const ZRC20Balances = () => {
           ZetaChain to see your balances.
         </p>
       </div>
+
+      {/* Conversion Modal */}
+      <ConversionModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        token={modalState.token}
+        mode={modalState.mode}
+        onSuccess={handleConversionSuccess}
+      />
     </div>
   );
 };
