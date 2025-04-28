@@ -17,8 +17,8 @@ const WITHDRAWER_ADDRESS = ADDRESSES.ZETA.USDC4_WITHDRAWER;
 // Status mapping for UI display
 const STATUS_MESSAGES = {
   pending: "Transaction submitted",
-  confirming: "Confirming transaction on ZetaChain",
-  processing: "Processing cross-chain transfer",
+  confirming: "Confirming on ZetaChain",
+  processing: "Processing on destination chain",
   outboundMined: "Completed on destination chain",
   failed: "Transaction failed",
 };
@@ -112,14 +112,19 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
 
       const tx = data.CrossChainTxs[0];
 
-      // Check if outbound transaction exists and has been mined
+      // Check if outbound transaction exists
       if (tx.outbound_params && tx.outbound_params.length > 0) {
         const outbound = tx.outbound_params[0];
 
+        // Set external transaction hash as soon as it's available
+        if (outbound.hash) {
+          setExternalTxHash(outbound.hash);
+        }
+
+        // Update status based on transaction state
         if (tx.cctx_status.status === "OutboundMined") {
           // Transaction completed on the target chain
           setTxStatus("outboundMined");
-          setExternalTxHash(outbound.hash);
 
           // Clear the interval as we've reached the final state
           if (statusCheckInterval) {
@@ -131,11 +136,13 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
         } else if (outbound.tx_finalization_status === "Executed") {
           // Transaction is being processed on the target chain
           setTxStatus("processing");
-          setExternalTxHash(outbound.hash);
         } else {
-          // Still waiting for the transaction to be processed
+          // Transaction is prepared but waiting to be executed on target chain
           setTxStatus("confirming");
         }
+      } else {
+        // No outbound parameters yet, still confirming on ZetaChain
+        setTxStatus("confirming");
       }
 
       return tx;
@@ -304,7 +311,10 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
 
         {externalTxHash && (
           <div className="text-sm mt-2">
-            <p>Destination Chain Transaction:</p>
+            <p>
+              Destination Chain Transaction{" "}
+              {txStatus !== "outboundMined" ? "(Pending)" : "(Confirmed)"}:
+            </p>
             <a
               href={`${NETWORK_EXPLORERS[targetChain]}${externalTxHash}`}
               target="_blank"
@@ -313,6 +323,12 @@ const WithdrawModal = ({ isOpen, onClose, token, onSuccess }) => {
             >
               {externalTxHash}
             </a>
+            {txStatus !== "outboundMined" && externalTxHash && (
+              <p className="text-xs text-amber-600 mt-1">
+                Transaction has been submitted to the destination chain but is
+                still being processed.
+              </p>
+            )}
           </div>
         )}
 
