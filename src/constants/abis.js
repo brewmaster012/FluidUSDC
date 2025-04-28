@@ -21,11 +21,12 @@ export const ERC20_ABI = [
   "function approve(address, uint256) returns (bool)",
   "function transfer(address, uint256) returns (bool)",
   "function decimals() view returns (uint8)",
+  "function allowance(address owner, address spender) view returns (uint256)",
 ];
 
 export const GATEWAY_ABI = [
   "function deposit(address receiver, uint256 amount, address asset, tuple(bool callOnRevert, bytes revertMessage) revertOptions) external",
-  "function depositAndCall(address receiver, uint256 amount, address asset, bytes calldata payload, tuple(bool callOnRevert, bytes revertMessage) revertOptions) external",
+  "function depositAndCall(address receiver, uint256 amount, address asset, bytes payload, tuple(address revertAddress, bool callOnRevert, address abortAddress, bytes revertMessage, uint256 onRevertGasLimit) revertOptions) external",
 ];
 
 export const WITHDRAWER_ABI = [

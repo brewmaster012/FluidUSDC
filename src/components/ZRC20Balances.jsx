@@ -6,6 +6,7 @@ import { CHAIN_IDS } from "../constants/addresses";
 import NetworkIcon from "./NetworkIcon";
 import ConversionModal from "./ConversionModal";
 import WithdrawModal from "./WithdrawModal"; // Import the new WithdrawModal
+import DepositModal from "./DepositModal"; // Import the new component
 
 const ZRC20Balances = () => {
   // Existing state
@@ -27,6 +28,8 @@ const ZRC20Balances = () => {
     isOpen: false,
     token: null,
   });
+
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
@@ -119,6 +122,16 @@ const ZRC20Balances = () => {
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm"
           >
             Switch to ZetaChain
+          </button>
+        )}
+
+        {/* New Deposit Button */}
+        {!isZetaChain && (
+          <button
+            onClick={() => setDepositModalOpen(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm"
+          >
+            Deposit USDC to ZetaChain
           </button>
         )}
       </div>
@@ -280,6 +293,12 @@ const ZRC20Balances = () => {
         isOpen={withdrawModalState.isOpen}
         onClose={closeWithdrawModal}
         token={withdrawModalState.token}
+        onSuccess={handleConversionSuccess}
+      />
+      {/* New Deposit Modal */}
+      <DepositModal
+        isOpen={depositModalOpen}
+        onClose={() => setDepositModalOpen(false)}
         onSuccess={handleConversionSuccess}
       />
     </div>
