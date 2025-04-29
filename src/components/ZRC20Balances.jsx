@@ -126,14 +126,13 @@ const ZRC20Balances = () => {
         )}
 
         {/* New Deposit Button */}
-        {!isZetaChain && (
-          <button
-            onClick={() => setDepositModalOpen(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm"
-          >
-            Deposit USDC to ZetaChain
-          </button>
-        )}
+
+        <button
+          onClick={() => setDepositModalOpen(true)}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm"
+        >
+          Deposit USDC to ZetaChain
+        </button>
       </div>
 
       {loading ? (
