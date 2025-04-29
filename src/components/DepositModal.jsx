@@ -10,6 +10,23 @@ import NetworkIcon from "./NetworkIcon";
 // The address of the deployed USDC4Converter contract
 const CONVERTER_ADDRESS = ADDRESSES.ZETA.USDC4_CONVERTER;
 
+// Status mapping for UI display
+const STATUS_MESSAGES = {
+  pending: "Transaction submitted",
+  confirming: "Confirming on source chain",
+  processing: "Processing on ZetaChain",
+  outboundMined: "Completed on ZetaChain",
+  failed: "Transaction failed",
+};
+
+// Network explorer URLs for transactions
+const NETWORK_EXPLORERS = {
+  [CHAIN_IDS.ARBITRUM]: "https://arbiscan.io",
+  [CHAIN_IDS.BASE]: "https://basescan.org",
+  [CHAIN_IDS.AVAX]: "https://snowtrace.io",
+  zeta: "https://zetachain.blockscout.com",
+};
+
 // Network->USDC mapping
 const NETWORK_USDC = {
   [CHAIN_IDS.ARBITRUM]: {
@@ -46,21 +63,65 @@ const DepositModal = ({ isOpen, onClose, onSuccess }) => {
   const [txStatus, setTxStatus] = useState(null);
   const [txHash, setTxHash] = useState(null);
 
+  // states tracking cctx
+  const [zetaTxHash, setZetaTxHash] = useState(null);
+  const [statusCheckInterval, setStatusCheckInterval] = useState(null);
+
   useEffect(() => {
-    // Reset state when modal opens
     if (isOpen) {
       setAmount("");
-      setRecipientAddress("");
+      setRecipientAddress(account || "");
       setError(null);
       setTxStatus(null);
       setTxHash(null);
-
-      // Default recipient to connected account
-      if (account) {
-        setRecipientAddress(account);
+      setZetaTxHash(null);
+      if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+        setStatusCheckInterval(null);
       }
     }
   }, [isOpen, account]);
+
+  useEffect(() => {
+    return () => {
+      if (statusCheckInterval) clearInterval(statusCheckInterval);
+    };
+  }, [statusCheckInterval]);
+
+  const checkDepositStatus = async (sourceTxHash) => {
+    try {
+      const response = await fetch(
+        `https://zetachain.blockpi.network/lcd/v1/public/zeta-chain/crosschain/inboundHashToCctxData/${sourceTxHash}`,
+      );
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const data = await response.json();
+      if (!data.CrossChainTxs?.length) return null;
+
+      const cctx = data.CrossChainTxs[0];
+      if (cctx.outbound_params?.length) {
+        const outbound = cctx.outbound_params[0];
+        if (outbound.hash) setZetaTxHash(outbound.hash);
+
+        if (cctx.cctx_status.status === "OutboundMined") {
+          setTxStatus("outboundMined");
+          clearInterval(statusCheckInterval);
+          setStatusCheckInterval(null);
+          onSuccess?.();
+        } else {
+          setTxStatus(
+            outbound.tx_finalization_status === "Executed"
+              ? "processing"
+              : "confirming",
+          );
+        }
+      }
+      return cctx;
+    } catch (error) {
+      console.error("Error checking deposit status:", error);
+      return null;
+    }
+  };
 
   // Check if we're on a supported chain
   const isOnSupportedChain = NETWORK_USDC[chainId] !== undefined;
@@ -130,20 +191,16 @@ const DepositModal = ({ isOpen, onClose, onSuccess }) => {
     setTxStatus("preparing");
 
     try {
+      const network = NETWORK_USDC[chainId];
       const networkInfo = NETWORK_USDC[chainId];
-      const usdcContract = new ethers.Contract(
-        networkInfo.usdc,
-        ERC20_ABI,
-        signer,
-      );
+      const usdcContract = new ethers.Contract(network.usdc, ERC20_ABI, signer);
       const gatewayContract = new ethers.Contract(
-        networkInfo.gateway,
+        network.gateway,
         GATEWAY_ABI,
         signer,
       );
-      const decimals = await usdcContract.decimals();
 
-      // Format amount with proper decimals
+      const decimals = await usdcContract.decimals();
       const parsedAmount = ethers.utils.parseUnits(amount, decimals);
 
       // First approve gateway to spend USDC
@@ -155,7 +212,7 @@ const DepositModal = ({ isOpen, onClose, onSuccess }) => {
       if (currentAllowance.lt(parsedAmount)) {
         setTxStatus("approving");
         const approveTx = await usdcContract.approve(
-          networkInfo.gateway,
+          network.gateway,
           parsedAmount,
         );
         await approveTx.wait();
@@ -163,6 +220,8 @@ const DepositModal = ({ isOpen, onClose, onSuccess }) => {
         console.log(`allowance ${currentAllowance} enough; skip approve tx`);
       }
 
+      // Deposit transaction
+      setTxStatus("depositing");
       // Prepare payload for the USDC4Converter contract
       // The payload should encode the recipient address that will receive USDC.4
       const payload = ethers.utils.defaultAbiCoder.encode(
@@ -179,13 +238,11 @@ const DepositModal = ({ isOpen, onClose, onSuccess }) => {
         onRevertGasLimit: 100000, // 100K gas limit for revert
       };
 
-      setTxStatus("depositing");
-
       // Call depositAndCall on the gateway
       const tx = await gatewayContract.depositAndCall(
         CONVERTER_ADDRESS, // Receiver (USDC4Converter contract)
         parsedAmount, // Amount of USDC
-        networkInfo.usdc, // USDC token address
+        network.usdc, // USDC token address
         payload, // Encoded recipient address
         revertOptions, // Revert options
       );
@@ -194,10 +251,13 @@ const DepositModal = ({ isOpen, onClose, onSuccess }) => {
       setTxStatus("confirming");
 
       await tx.wait();
-      setTxStatus("complete");
+
+      const interval = setInterval(() => checkDepositStatus(tx.hash), 10000);
+      setStatusCheckInterval(interval);
+      await checkDepositStatus(tx.hash);
 
       // Call success callback
-      onSuccess?.();
+      // onSuccess?.();
 
       // Don't close the modal yet - let user see the completion status
     } catch (err) {
@@ -267,29 +327,39 @@ const DepositModal = ({ isOpen, onClose, onSuccess }) => {
           </div>
         )}
 
-        {txStatus === "complete" && (
-          <div className="mt-3">
-            <button
-              onClick={onClose}
-              className="w-full py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700"
+        {zetaTxHash && (
+          <div className="text-sm mt-2">
+            <p>ZetaChain Transaction:</p>
+            <a
+              href={`${NETWORK_EXPLORERS.zeta}/tx/${zetaTxHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline break-all"
             >
-              Close
-            </button>
+              {zetaTxHash}
+            </a>
           </div>
         )}
-
-        {txStatus === "failed" && (
-          <div className="mt-3">
+        {txStatus === "outboundMined" ? (
+          <button
+            onClick={onClose}
+            className="w-full mt-4 py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700"
+          >
+            Transaction Complete
+          </button>
+        ) : (
+          txStatus === "failed" && (
             <button
               onClick={() => {
                 setTxStatus(null);
                 setTxHash(null);
+                setZetaTxHash(null);
               }}
-              className="w-full py-2 px-4 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+              className="w-full mt-4 py-2 px-4 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
             >
               Try Again
             </button>
-          </div>
+          )
         )}
       </div>
     );
