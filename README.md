@@ -56,6 +56,10 @@ coins:
 | USDC.SOL | ZRC20 |`0x8344d6f84d26f998fa070BbEa6D2E15E359e2641` |
 | USDC.BASE | ZRC20 |`0x96152E6180E085FA57c7708e18AF8F05e37B479D` |
 | USDC.AVAX | ZRC20 |`0xa52Ad01A1d62b408fFe06C2467439251da61E4a9` |
+|--------|------|---------|
+| USDC4Withdrawer | CCTX IO | `0x3aEA86Ec4ce409C7e01bD4f5D6A175cf9BC7c140` |
+| USDC4Deposit | CCTX IO | `0x5D6750637FF2776F9d9B51f11B2eB90D1419A60F` |
+
 
 You can inspect and interact with these contracts on zetachain blockscout explorer: https://zetachain.blockscout.com
 
