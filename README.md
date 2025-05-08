@@ -1,7 +1,7 @@
 ```
 > USE THIS AT YOUR OWN RISK!!
 ```
-[The App](https://brewmaster012.github.io/FluidUSDC/dist)
+[The App](https://zeta-chain.github.io/FluidUSDC/dist)
 
 # FluidUSDC
 
